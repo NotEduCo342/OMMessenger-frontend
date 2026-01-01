@@ -5,6 +5,10 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
+# Configure NPM Registry for Iran
+ARG NPM_CONFIG_REGISTRY
+ENV NPM_CONFIG_REGISTRY=$NPM_CONFIG_REGISTRY
+
 # Install pnpm
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"

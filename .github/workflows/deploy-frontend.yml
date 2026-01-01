@@ -61,7 +61,13 @@ jobs:
           # Build and Start Containers
           echo "🏗️ Building and Starting Containers..."
           docker-compose down
-          docker-compose up -d --build
+          
+          # Build using NPM Mirror to bypass geo-blocking
+          echo "🛡️ Building with NPM Mirror..."
+          docker-compose build --build-arg NPM_CONFIG_REGISTRY=https://registry.npmmirror.com
+          
+          echo "🚀 Starting services..."
+          docker-compose up -d
           
           # Cleanup unused images
           docker image prune -f
