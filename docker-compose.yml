@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: om-frontend
+    restart: always
+    ports:
+      # Bind to localhost:3001 because 3000 is occupied on host
+      - "127.0.0.1:3001:3000"
+    environment:
+      # These will be loaded from the .env file on the VPS
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NODE_ENV: production
+    networks:
+      - om-frontend-net
+
+networks:
+  om-frontend-net:
+    driver: bridge

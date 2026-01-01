@@ -1,0 +1,201 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LogOut, MessageSquare, Menu, Users, Moon, Sun, Phone, Bookmark, UserPlus, Settings } from 'lucide-react';
+
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { useTheme } from 'next-themes';
+
+import { useAuthStore } from '@/stores/auth-store';
+import { useUIStore } from '@/stores/ui-store';
+
+export default function ChatLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const { user, isAuthenticated, clearAuth } = useAuthStore();
+  const { sidebarOpen, toggleSidebar } = useUIStore();
+  const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/auth');
+    }
+  }, [isAuthenticated, router]);
+
+  function handleLogout() {
+    clearAuth();
+    router.push('/');
+  }
+
+  if (!isAuthenticated || !user) {
+    return null;
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-background relative">
+      {/* Left Sidebar - Always Visible */}
+      <aside className="flex w-80 flex-col border-r relative z-30">
+        {/* Sidebar Header */}
+        <div className="flex h-16 items-center justify-between border-b px-4">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} title="Menu">
+            <Menu className="h-5 w-5" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            <span className="font-semibold">Messages</span>
+          </div>
+          <div className="w-10" /> {/* Spacer for symmetry */}
+        </div>
+
+        {/* Conversation List */}
+        <ScrollArea className="flex-1">
+          <div className="p-2">
+            {/* Placeholder for conversations */}
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <MessageSquare className="h-12 w-12 text-muted-foreground opacity-50" />
+              <p className="mt-4 text-sm text-muted-foreground">
+                No conversations yet
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Start messaging to see your chats here
+              </p>
+            </div>
+          </div>
+        </ScrollArea>
+
+        <Separator />
+
+        {/* User Profile - Clickable */}
+        <button
+          onClick={toggleSidebar}
+          className="flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors"
+        >
+          <Avatar>
+            <AvatarFallback>
+              {user.fullName?.split(' ').map(n => n[0]).join('').toUpperCase() || user.username?.[0]?.toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 overflow-hidden text-left">
+            <p className="truncate text-sm font-medium">{user.fullName || user.username}</p>
+            <p className="truncate text-xs text-muted-foreground">@{user.username}</p>
+          </div>
+        </button>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col relative z-10">
+        {children}
+      </div>
+
+      {/* Menu Overlay */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <>
+            {/* Backdrop - Blurs and darkens everything on the right */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={toggleSidebar}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+              style={{ left: '320px' }} // Start after the left sidebar
+            />
+            
+            {/* Floating Menu Sidebar from Left */}
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="fixed left-0 top-0 h-full w-80 bg-background border-r shadow-2xl z-50 flex flex-col"
+            >
+              {/* Menu Header */}
+              <div className="flex h-16 items-center justify-between border-b px-4">
+                <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+                  <Menu className="h-5 w-5" />
+                </Button>
+                <h2 className="font-semibold">Menu</h2>
+                <div className="w-10" /> {/* Spacer */}
+              </div>
+
+              {/* User Info */}
+              <div className="p-4 border-b">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarFallback>
+                      {user.fullName?.split(' ').map(n => n[0]).join('').toUpperCase() || user.username?.[0]?.toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 overflow-hidden">
+                    <p className="truncate font-medium">{user.fullName || user.username}</p>
+                    <p className="truncate text-sm text-muted-foreground">@{user.username}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Menu Items */}
+              <ScrollArea className="flex-1">
+                <div className="p-2">
+                  <Button variant="ghost" className="w-full justify-start gap-3" onClick={toggleSidebar}>
+                    <UserPlus className="h-4 w-4" />
+                    <span>New Group</span>
+                  </Button>
+                  <Button variant="ghost" className="w-full justify-start gap-3" onClick={toggleSidebar}>
+                    <Users className="h-4 w-4" />
+                    <span>Contacts</span>
+                  </Button>
+                  <Button variant="ghost" className="w-full justify-start gap-3" onClick={toggleSidebar}>
+                    <Phone className="h-4 w-4" />
+                    <span>Calls</span>
+                  </Button>
+                  <Button variant="ghost" className="w-full justify-start gap-3" onClick={toggleSidebar}>
+                    <Bookmark className="h-4 w-4" />
+                    <span>Saved Messages</span>
+                  </Button>
+                  
+                  <Separator className="my-2" />
+                  
+                  <div className="flex items-center justify-between px-3 py-2 hover:bg-muted/50 rounded-md transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Moon className="h-4 w-4" />
+                      <span className="text-sm">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+                    </div>
+                    <Switch 
+                      checked={theme === 'dark'}
+                      onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                    />
+                  </div>
+                  
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start gap-3"
+                    onClick={() => router.push('/settings')}
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>Settings</span>
+                  </Button>
+                  
+                  <Separator className="my-2" />
+                  
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start gap-3 text-destructive hover:text-destructive"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Log Out</span>
+                  </Button>
+                </div>
+              </ScrollArea>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

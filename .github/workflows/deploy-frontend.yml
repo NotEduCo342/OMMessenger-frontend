@@ -1,0 +1,44 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'om-frontend/**'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: ./om-frontend
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/om-frontend:latest
+
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VPS_FRONTEND_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+          cd /path/to/om-frontend
+          # Pull the latest changes (including docker-compose.yml updates)
+          git pull
+          # Pull the new image
+          docker compose pull
+          # Restart the service (uses existing .env file on server)
+          docker compose up -d
