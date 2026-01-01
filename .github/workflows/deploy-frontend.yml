@@ -3,8 +3,6 @@ name: Deploy Frontend (VPS Build)
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'om-frontend/**'
 
 env:
   BRANCH_NAME: ${{ github.ref_name }}
