@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, MessageSquare, Menu, Users, Moon, Sun, Phone, Bookmark, UserPlus, Settings } from 'lucide-react';
@@ -15,24 +15,55 @@ import { useTheme } from 'next-themes';
 import { useAuthStore } from '@/stores/auth-store';
 import { useUIStore } from '@/stores/ui-store';
 
+import { getCurrentUser, logoutUser } from '@/api/auth';
+
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { user, isAuthenticated, clearAuth } = useAuthStore();
+	const { user, isAuthenticated, setAuth, clearAuth } = useAuthStore();
   const { sidebarOpen, toggleSidebar } = useUIStore();
   const { theme, setTheme } = useTheme();
+	const [hydratingSession, setHydratingSession] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/auth');
-    }
-  }, [isAuthenticated, router]);
+    let cancelled = false;
+    const hydrate = async () => {
+      try {
+        if (!isAuthenticated) {
+          const currentUser = await getCurrentUser();
+          if (!cancelled) {
+            setAuth(currentUser);
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          clearAuth();
+          router.push('/auth');
+        }
+      } finally {
+        if (!cancelled) {
+          setHydratingSession(false);
+        }
+      }
+    };
 
-  function handleLogout() {
-    clearAuth();
-    router.push('/');
+    hydrate();
+    return () => {
+      cancelled = true;
+    };
+  }, [clearAuth, isAuthenticated, router, setAuth]);
+
+  async function handleLogout() {
+    try {
+      await logoutUser();
+    } catch {
+      // ignore
+    } finally {
+      clearAuth();
+      router.push('/');
+    }
   }
 
-  if (!isAuthenticated || !user) {
+  if (hydratingSession || !isAuthenticated || !user) {
     return null;
   }
 

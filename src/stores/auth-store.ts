@@ -11,11 +11,10 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
   
   // Actions
-  setAuth: (user: User, token: string) => void;
+  setAuth: (user: User) => void;
   clearAuth: () => void;
   updateUser: (user: Partial<User>) => void;
 }
@@ -25,23 +24,17 @@ export const useAuthStore = create<AuthState>()(
     persist(
       (set) => ({
         user: null,
-        token: null,
         isAuthenticated: false,
 
-        setAuth: (user, token) =>
+        setAuth: (user) =>
           set({
             user,
-            token,
             isAuthenticated: true,
           }),
 
         clearAuth: () => {
-          // Clear auth_token cookie
-          document.cookie = 'auth_token=; path=/; max-age=0';
-          
           set({
             user: null,
-            token: null,
             isAuthenticated: false,
           });
         },
@@ -55,7 +48,6 @@ export const useAuthStore = create<AuthState>()(
         name: 'auth-storage',
         partialize: (state) => ({
           user: state.user,
-          token: state.token,
           isAuthenticated: state.isAuthenticated,
         }),
       }

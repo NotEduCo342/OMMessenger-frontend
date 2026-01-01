@@ -15,13 +15,8 @@ export async function loginUser(data: LoginInput): Promise<AuthResponse> {
   }
 
   const result = await response.json();
-  
-  // Set auth token as cookie for proxy
-  document.cookie = `auth_token=${result.token}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 days
-  
-  // Transform snake_case to camelCase
+
   return {
-    token: result.token,
     user: {
       id: result.user.id,
       username: result.user.username,
@@ -53,13 +48,8 @@ export async function registerUser(data: RegisterInput): Promise<AuthResponse> {
   }
 
   const result = await response.json();
-  
-  // Set auth token as cookie for proxy
-  document.cookie = `auth_token=${result.token}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 days
-  
-  // Transform snake_case to camelCase
+
   return {
-    token: result.token,
     user: {
       id: result.user.id,
       username: result.user.username,
@@ -73,5 +63,20 @@ export async function registerUser(data: RegisterInput): Promise<AuthResponse> {
 }
 
 export async function getCurrentUser() {
-  return fetchWithAuth(API_ENDPOINTS.ME);
+  const response = await fetchWithAuth<any>(API_ENDPOINTS.ME);
+  return {
+    id: response.user.id,
+    username: response.user.username,
+    email: response.user.email,
+    fullName: response.user.full_name,
+    avatar: response.user.avatar,
+    isOnline: response.user.is_online,
+    lastSeen: response.user.last_seen,
+  };
+}
+
+export async function logoutUser() {
+	return fetchWithAuth(API_ENDPOINTS.LOGOUT, {
+		method: 'POST',
+	});
 }

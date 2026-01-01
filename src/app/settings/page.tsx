@@ -55,6 +55,12 @@ export default function SettingsPage() {
   const { user, isAuthenticated, updateUser } = useAuthStore();
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
 
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      router.push('/auth');
+    }
+  }, [isAuthenticated, router, user]);
+
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -137,7 +143,6 @@ export default function SettingsPage() {
   }
 
   if (!isAuthenticated || !user) {
-    router.push('/auth');
     return null;
   }
 

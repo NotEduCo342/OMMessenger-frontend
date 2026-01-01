@@ -107,7 +107,7 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       const response = await loginUser(data);
-      setAuth(response.user, response.token);
+		setAuth(response.user);
       toast.success('Welcome back!');
       router.push('/chat');
     } catch (error) {
@@ -127,7 +127,7 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       const response = await registerUser(data);
-      setAuth(response.user, response.token);
+		setAuth(response.user);
       toast.success('Account created successfully!');
       router.push('/chat');
     } catch (error) {

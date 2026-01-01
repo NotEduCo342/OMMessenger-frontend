@@ -10,7 +10,7 @@ interface WebSocketState {
   maxReconnectAttempts: number;
   
   // Actions
-  connect: (url: string, token: string) => void;
+  connect: (url: string) => void;
   disconnect: () => void;
   send: (data: any) => void;
   setStatus: (status: ConnectionStatus) => void;
@@ -26,7 +26,7 @@ export const useWebSocketStore = create<WebSocketState>()(
       reconnectAttempts: 0,
       maxReconnectAttempts: 5,
 
-      connect: (url, token) => {
+      connect: (url) => {
         const { ws, status } = get();
         
         // Don't reconnect if already connected/connecting
@@ -42,9 +42,6 @@ export const useWebSocketStore = create<WebSocketState>()(
           websocket.onopen = () => {
             console.log('WebSocket connected');
             set({ status: 'connected', reconnectAttempts: 0 });
-            
-            // Send authentication token
-            websocket.send(JSON.stringify({ type: 'auth', token }));
           };
 
           websocket.onclose = () => {

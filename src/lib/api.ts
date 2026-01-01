@@ -4,6 +4,9 @@ export const API_ENDPOINTS = {
   // Auth
   LOGIN: `${API_BASE_URL}/api/auth/login`,
   REGISTER: `${API_BASE_URL}/api/auth/register`,
+  CSRF: `${API_BASE_URL}/api/auth/csrf`,
+  REFRESH: `${API_BASE_URL}/api/auth/refresh`,
+  LOGOUT: `${API_BASE_URL}/api/auth/logout`,
   ME: `${API_BASE_URL}/api/users/me`,
   
   // Users
@@ -17,36 +20,82 @@ export const API_ENDPOINTS = {
   WS: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws',
 };
 
+function getCookieValue(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const parts = document.cookie.split(';').map((p) => p.trim());
+  for (const part of parts) {
+    if (!part) continue;
+    const idx = part.indexOf('=');
+    if (idx === -1) continue;
+    const k = part.slice(0, idx);
+    if (k === name) return decodeURIComponent(part.slice(idx + 1));
+  }
+  return null;
+}
+
+function isUnsafeMethod(method: string): boolean {
+  const m = (method || 'GET').toUpperCase();
+  return m !== 'GET' && m !== 'HEAD' && m !== 'OPTIONS';
+}
+
 export async function fetchWithAuth<T>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = localStorage.getItem('auth-storage');
-  let parsedToken = null;
+  const method = (options.method || 'GET').toUpperCase();
 
-  if (token) {
-    try {
-      const authData = JSON.parse(token);
-      parsedToken = authData.state?.token;
-    } catch (e) {
-      console.error('Failed to parse auth token:', e);
+  const buildHeaders = (): HeadersInit => {
+    const csrfToken = getCookieValue('om_csrf');
+    return {
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(isUnsafeMethod(method) && csrfToken ? { 'X-OM-CSRF': csrfToken } : {}),
+      ...options.headers,
+    };
+  };
+
+  let headers: HeadersInit = buildHeaders();
+
+  // If we are about to do an unsafe request and we don't yet have a CSRF token,
+  // ask the backend to issue one.
+  if (isUnsafeMethod(method) && !getCookieValue('om_csrf')) {
+    await fetch(API_ENDPOINTS.CSRF, {
+      method: 'GET',
+      credentials: 'include',
+    }).catch(() => undefined);
+    headers = buildHeaders();
+  }
+
+  const doFetch = async (): Promise<Response> => {
+    return fetch(url, {
+      ...options,
+      headers,
+      credentials: 'include',
+    });
+  };
+
+  let response = await doFetch();
+
+  // Attempt one refresh on 401
+  if (response.status === 401 && url !== API_ENDPOINTS.REFRESH) {
+    const csrfToken = getCookieValue('om_csrf');
+    const refreshRes = await fetch(API_ENDPOINTS.REFRESH, {
+      method: 'POST',
+      credentials: 'include',
+			headers: {
+				...(csrfToken ? { 'X-OM-CSRF': csrfToken } : {}),
+			},
+    });
+
+    if (refreshRes.ok) {
+      response = await doFetch();
     }
   }
 
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(parsedToken && { Authorization: `Bearer ${parsedToken}` }),
-    ...options.headers,
-  };
-
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
-
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Network error' }));
-    throw new Error(error.error || `HTTP ${response.status}`);
+		const error = await response
+			.json()
+			.catch(() => ({ error: 'Network error' } as any));
+		throw new Error(error.error || error.message || `HTTP ${response.status}`);
   }
 
   return response.json();
