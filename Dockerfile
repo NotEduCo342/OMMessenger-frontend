@@ -26,6 +26,10 @@ COPY . .
 # Disable telemetry during build
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Backend URL for API proxy
+ARG BACKEND_URL
+ENV BACKEND_URL=$BACKEND_URL
+
 RUN corepack enable && pnpm run build
 
 # Production image, copy all the files and run next
@@ -34,6 +38,10 @@ WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
+
+# Backend URL for runtime
+ARG BACKEND_URL
+ENV BACKEND_URL=$BACKEND_URL
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

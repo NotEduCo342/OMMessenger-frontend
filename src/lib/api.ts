@@ -1,23 +1,25 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+// Use Next.js API proxy for same-origin requests (fixes cookie issues)
+const USE_PROXY = process.env.NEXT_PUBLIC_USE_PROXY !== 'false';
+const API_BASE_URL = USE_PROXY ? '/api/proxy/api' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api');
 
 export const API_ENDPOINTS = {
   // Auth
-  LOGIN: `${API_BASE_URL}/api/auth/login`,
-  REGISTER: `${API_BASE_URL}/api/auth/register`,
-  CSRF: `${API_BASE_URL}/api/auth/csrf`,
-  REFRESH: `${API_BASE_URL}/api/auth/refresh`,
-  LOGOUT: `${API_BASE_URL}/api/auth/logout`,
-  ME: `${API_BASE_URL}/api/users/me`,
+  LOGIN: `${API_BASE_URL}/auth/login`,
+  REGISTER: `${API_BASE_URL}/auth/register`,
+  CSRF: `${API_BASE_URL}/auth/csrf`,
+  REFRESH: `${API_BASE_URL}/auth/refresh`,
+  LOGOUT: `${API_BASE_URL}/auth/logout`,
+  ME: `${API_BASE_URL}/users/me`,
   
   // Users
-  CHECK_USERNAME: `${API_BASE_URL}/api/users/check-username`,
-  UPDATE_PROFILE: `${API_BASE_URL}/api/users/me`,
+  CHECK_USERNAME: `${API_BASE_URL}/users/check-username`,
+  UPDATE_PROFILE: `${API_BASE_URL}/users/me`,
   
   // Messages
-  MESSAGES: `${API_BASE_URL}/api/messages`,
+  MESSAGES: `${API_BASE_URL}/messages`,
   
-  // WebSocket
-  WS: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws',
+  // WebSocket (still direct connection)
+  WS: process.env.NEXT_PUBLIC_WS_URL || 'wss://api-om.wexun.tech/ws',
 };
 
 function getCookieValue(name: string): string | null {
