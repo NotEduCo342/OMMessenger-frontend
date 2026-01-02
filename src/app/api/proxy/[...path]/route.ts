@@ -41,7 +41,8 @@ async function proxyRequest(
   method: string
 ) {
   const path = pathSegments.join('/');
-  const url = `${BACKEND_URL}/${path}`;
+  // Preserve query string (e.g. /users/search?q=...&limit=...)
+  const url = `${BACKEND_URL}/${path}${request.nextUrl.search}`;
   
   console.log(`[Proxy] ${method} ${url}`);
 
