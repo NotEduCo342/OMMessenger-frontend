@@ -116,10 +116,11 @@ export default function AuthPage() {
       const response = await loginUser(data);
 		setAuth(response.user);
       toast.success('Welcome back!');
+      // Small delay to ensure state updates propagate
+      await new Promise(resolve => setTimeout(resolve, 100));
       router.replace('/chat');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Login failed');
-    } finally {
       setIsLoading(false);
     }
   }
@@ -136,10 +137,11 @@ export default function AuthPage() {
       const response = await registerUser(data);
 		setAuth(response.user);
       toast.success('Account created successfully!');
+      // Small delay to ensure state updates propagate
+      await new Promise(resolve => setTimeout(resolve, 100));
       router.replace('/chat');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Registration failed');
-    } finally {
       setIsLoading(false);
     }
   }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, MessageSquare, Menu, Users, Moon, Sun, Phone, Bookmark, UserPlus, Settings } from 'lucide-react';
+import { LogOut, MessageSquare, Menu, Users, Moon, Sun, Phone, Bookmark, UserPlus, Settings, Loader2 } from 'lucide-react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -36,16 +36,14 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         const currentUser = await getCurrentUser();
         if (!cancelled) {
           setAuth(currentUser);
+          setHydratingSession(false);
         }
       } catch (error) {
         // Clear stale auth state on any error (401, network, etc.)
         if (!cancelled) {
           clearAuth();
-          router.replace('/auth');
-        }
-      } finally {
-        if (!cancelled) {
           setHydratingSession(false);
+          router.replace('/auth');
         }
       }
     };
@@ -67,7 +65,20 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     }
   }
 
-  if (hydratingSession || !isAuthenticated || !user) {
+  // Show loading state during hydration
+  if (hydratingSession) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect handled by useEffect, show nothing during redirect
+  if (!isAuthenticated || !user) {
     return null;
   }
 
