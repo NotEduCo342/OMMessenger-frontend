@@ -57,7 +57,8 @@ async function proxyRequest(
   // Forward headers
   const headers: HeadersInit = {
     'Content-Type': request.headers.get('content-type') || 'application/json',
-    'Origin': 'https://om.wexun.tech',
+    // Preserve the caller origin when present; helps avoid CORS/cookie issues in non-prod.
+    'Origin': request.headers.get('origin') || 'https://om.wexun.tech',
   };
 
   // Add cookies if present
@@ -80,7 +81,7 @@ async function proxyRequest(
     try {
       const text = await request.text();
       if (text) body = text;
-    } catch (e) {
+    } catch {
       // No body
     }
   }
@@ -137,7 +138,7 @@ async function proxyRequest(
     setCookieHeaders.forEach((cookie) => {
       // Remove domain attribute to let browser use current origin (om.wexun.tech)
       // This ensures cookies are sent back to the same domain
-      let rewrittenCookie = cookie.replace(/;\s*[Dd]omain=[^;]+/g, '');
+      const rewrittenCookie = cookie.replace(/;\s*[Dd]omain=[^;]+/g, '');
       
       console.log(`[Proxy] Original cookie: ${cookie.substring(0, 150)}`);
       console.log(`[Proxy] Rewritten cookie: ${rewrittenCookie.substring(0, 150)}`);
