@@ -133,8 +133,21 @@ async function proxyRequest(
     });
 
     // Forward Set-Cookie headers to browser
+    // Rewrite domain to ensure cookies work with frontend origin
     setCookieHeaders.forEach((cookie) => {
-      nextResponse.headers.append('Set-Cookie', cookie);
+      // Remove domain attribute if present (let browser use current origin)
+      // Remove any backend-specific domain
+      let rewrittenCookie = cookie
+        .replace(/;\s*Domain=[^;]+/gi, '')
+        .replace(/;\s*domain=[^;]+/gi, '');
+      
+      // Ensure Path is set to / if not present
+      if (!/Path=/i.test(rewrittenCookie)) {
+        rewrittenCookie += '; Path=/';
+      }
+      
+      console.log(`[Proxy] Rewritten cookie: ${rewrittenCookie.substring(0, 100)}...`);
+      nextResponse.headers.append('Set-Cookie', rewrittenCookie);
     });
 
     console.log(`[Proxy] Response headers set, forwarding ${setCookieHeaders.length} cookies`);
