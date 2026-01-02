@@ -63,16 +63,23 @@ export async function registerUser(data: RegisterInput): Promise<AuthResponse> {
 }
 
 export async function getCurrentUser() {
-  const response = await fetchWithAuth<any>(API_ENDPOINTS.ME);
-  return {
-    id: response.user.id,
-    username: response.user.username,
-    email: response.user.email,
-    fullName: response.user.full_name,
-    avatar: response.user.avatar,
-    isOnline: response.user.is_online,
-    lastSeen: response.user.last_seen,
-  };
+  console.log('[API] getCurrentUser called, fetching from:', API_ENDPOINTS.ME);
+  try {
+    const response = await fetchWithAuth<any>(API_ENDPOINTS.ME);
+    console.log('[API] getCurrentUser response:', response.user);
+    return {
+      id: response.user.id,
+      username: response.user.username,
+      email: response.user.email,
+      fullName: response.user.full_name,
+      avatar: response.user.avatar,
+      isOnline: response.user.is_online,
+      lastSeen: response.user.last_seen,
+    };
+  } catch (error) {
+    console.error('[API] getCurrentUser failed:', error);
+    throw error;
+  }
 }
 
 export async function logoutUser() {

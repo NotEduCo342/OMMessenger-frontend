@@ -121,8 +121,8 @@ export default function AuthPage() {
       toast.success('Welcome back!');
       // Small delay to ensure state updates propagate
       await new Promise(resolve => setTimeout(resolve, 100));
-      console.log('[AuthPage] Redirecting to /chat');
-      router.replace('/chat');
+      console.log('[AuthPage] Redirecting to /chat via window.location');
+      window.location.href = '/chat';
     } catch (error) {
       console.error('[AuthPage] Login failed:', error);
       toast.error(error instanceof Error ? error.message : 'Login failed');
@@ -147,8 +147,8 @@ export default function AuthPage() {
       toast.success('Account created successfully!');
       // Small delay to ensure state updates propagate
       await new Promise(resolve => setTimeout(resolve, 100));
-      console.log('[AuthPage] Redirecting to /chat');
-      router.replace('/chat');
+      console.log('[AuthPage] Redirecting to /chat via window.location');
+      window.location.href = '/chat';
     } catch (error) {
       console.error('[AuthPage] Registration failed:', error);
       toast.error(error instanceof Error ? error.message : 'Registration failed');
