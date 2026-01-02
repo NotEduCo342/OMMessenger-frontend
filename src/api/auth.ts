@@ -2,6 +2,7 @@ import { API_ENDPOINTS, fetchWithAuth } from '@/lib/api';
 import type { AuthResponse, LoginInput, RegisterInput } from '@/types';
 
 export async function loginUser(data: LoginInput): Promise<AuthResponse> {
+  console.log('[API] loginUser called for:', data.email);
   const response = await fetch(API_ENDPOINTS.LOGIN, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -9,12 +10,16 @@ export async function loginUser(data: LoginInput): Promise<AuthResponse> {
     credentials: 'include', // Important: allow cookies
   });
 
+  console.log('[API] Login response status:', response.status);
+  console.log('[API] Login response headers:', Object.fromEntries(response.headers.entries()));
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Login failed' }));
     throw new Error(error.error || 'Login failed');
   }
 
   const result = await response.json();
+  console.log('[API] Login response body:', result);
 
   return {
     user: {

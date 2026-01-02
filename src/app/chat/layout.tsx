@@ -31,6 +31,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     console.log('[ChatLayout] Hydration started', { isAuthenticated, user: user?.username });
+    console.log('[ChatLayout] Cookies:', document.cookie);
     let cancelled = false;
     const hydrate = async () => {
       try {
@@ -49,8 +50,8 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
           clearAuth();
           setAuthError(true);
           setHydratingSession(false);
-          console.log('[ChatLayout] Auth cleared, redirecting to /auth');
-          setTimeout(() => router.replace('/auth'), 100);
+          console.log('[ChatLayout] Auth cleared, redirecting to /auth via window.location');
+          window.location.href = '/auth';
         }
       }
     };
@@ -59,7 +60,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     return () => {
       cancelled = true;
     };
-  }, [clearAuth, router, setAuth]);
+  }, [clearAuth, setAuth]);
 
   async function handleLogout() {
     try {

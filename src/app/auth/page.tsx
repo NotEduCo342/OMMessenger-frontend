@@ -43,12 +43,11 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
 
-  // Redirect if already authenticated
+  // Don't auto-redirect on mount - only redirect after successful login/register
+  // This prevents redirect loops
   useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/chat');
-    }
-  }, [isAuthenticated, router]);
+    console.log('[AuthPage] Mount - isAuthenticated:', isAuthenticated);
+  }, [isAuthenticated]);
 
   const loginForm = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -116,6 +115,7 @@ export default function AuthPage() {
     try {
       const response = await loginUser(data);
       console.log('[AuthPage] Login successful:', response.user);
+      console.log('[AuthPage] Cookies after login:', document.cookie);
 		setAuth(response.user);
       console.log('[AuthPage] Auth state set, waiting before redirect...');
       toast.success('Welcome back!');
