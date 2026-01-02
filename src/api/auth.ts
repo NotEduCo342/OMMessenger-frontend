@@ -3,6 +3,8 @@ import type { AuthResponse, LoginInput, RegisterInput } from '@/types';
 
 export async function loginUser(data: LoginInput): Promise<AuthResponse> {
   console.log('[API] loginUser called for:', data.email);
+  console.log('[API] Cookies BEFORE login:', document.cookie);
+  
   const response = await fetch(API_ENDPOINTS.LOGIN, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -12,6 +14,7 @@ export async function loginUser(data: LoginInput): Promise<AuthResponse> {
 
   console.log('[API] Login response status:', response.status);
   console.log('[API] Login response headers:', Object.fromEntries(response.headers.entries()));
+  console.log('[API] Cookies AFTER login response:', document.cookie);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Login failed' }));
@@ -20,6 +23,10 @@ export async function loginUser(data: LoginInput): Promise<AuthResponse> {
 
   const result = await response.json();
   console.log('[API] Login response body:', result);
+  
+  // Wait a bit and check cookies again
+  await new Promise(resolve => setTimeout(resolve, 100));
+  console.log('[API] Cookies 100ms after login:', document.cookie);
 
   return {
     user: {
