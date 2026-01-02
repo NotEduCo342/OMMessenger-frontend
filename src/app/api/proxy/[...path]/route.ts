@@ -88,8 +88,27 @@ async function proxyRequest(
       credentials: 'include',
     });
 
+    console.log(`[Proxy] Response status: ${response.status}`);
+
     // Extract Set-Cookie headers from backend response
-    const setCookieHeaders = response.headers.getSetCookie?.() || [];
+    // Try multiple methods to get Set-Cookie headers
+    let setCookieHeaders: string[] = [];
+    
+    if (typeof response.headers.getSetCookie === 'function') {
+      setCookieHeaders = response.headers.getSetCookie();
+    } else {
+      // Fallback: manually extract from raw headers
+      const rawSetCookie = response.headers.get('set-cookie');
+      if (rawSetCookie) {
+        setCookieHeaders = [rawSetCookie];
+      }
+    }
+
+    console.log(`[Proxy] Set-Cookie headers found: ${setCookieHeaders.length}`);
+    setCookieHeaders.forEach((cookie, idx) => {
+      const cookieName = cookie.split('=')[0];
+      console.log(`[Proxy] Cookie ${idx + 1}: ${cookieName}`);
+    });
 
     // Create response with backend data
     const data = await response.text();
@@ -105,6 +124,8 @@ async function proxyRequest(
     setCookieHeaders.forEach((cookie) => {
       nextResponse.headers.append('Set-Cookie', cookie);
     });
+
+    console.log(`[Proxy] Response headers set, forwarding ${setCookieHeaders.length} cookies`);
 
     return nextResponse;
   } catch (error) {
