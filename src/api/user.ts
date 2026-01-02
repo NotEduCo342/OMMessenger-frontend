@@ -38,3 +38,35 @@ export async function updateUserProfile(data: {
     lastSeen: response.user.last_seen,
   };
 }
+
+export async function searchUsers(query: string, limit: number = 20): Promise<User[]> {
+  const baseUrl = API_ENDPOINTS.CHECK_USERNAME.replace('/check-username', '');
+  const response = await fetchWithAuth<{ users: any[] }>(
+    `${baseUrl}/search?q=${encodeURIComponent(query)}&limit=${limit}`
+  );
+  
+  return response.users.map(user => ({
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    fullName: user.full_name,
+    avatar: user.avatar,
+    isOnline: user.is_online,
+    lastSeen: user.last_seen,
+  }));
+}
+
+export async function getUserByUsername(username: string): Promise<User> {
+  const baseUrl = API_ENDPOINTS.CHECK_USERNAME.replace('/check-username', '');
+  const response = await fetchWithAuth<{ user: any }>(`${baseUrl}/${username}`);
+  
+  return {
+    id: response.user.id,
+    username: response.user.username,
+    email: response.user.email,
+    fullName: response.user.full_name,
+    avatar: response.user.avatar,
+    isOnline: response.user.is_online,
+    lastSeen: response.user.last_seen,
+  };
+}

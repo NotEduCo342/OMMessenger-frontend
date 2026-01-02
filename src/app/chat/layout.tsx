@@ -10,12 +10,16 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTheme } from 'next-themes';
 
 import { useAuthStore } from '@/stores/auth-store';
 import { useUIStore } from '@/stores/ui-store';
 
 import { getCurrentUser, logoutUser } from '@/api/auth';
+import { UserSearch } from '@/components/user-search';
+import { ConversationList } from '@/components/conversation-list';
+import type { User } from '@/types';
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -84,20 +88,32 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Conversation List */}
-        <ScrollArea className="flex-1">
-          <div className="p-2">
-            {/* Placeholder for conversations */}
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <MessageSquare className="h-12 w-12 text-muted-foreground opacity-50" />
-              <p className="mt-4 text-sm text-muted-foreground">
-                No conversations yet
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Start messaging to see your chats here
-              </p>
-            </div>
-          </div>
-        </ScrollArea>
+        <Tabs defaultValue="conversations" className="flex-1 flex flex-col">
+          <TabsList className="mx-4 mt-2">
+            <TabsTrigger value="conversations" className="flex-1">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Chats
+            </TabsTrigger>
+            <TabsTrigger value="search" className="flex-1">
+              <Users className="h-4 w-4 mr-2" />
+              Find
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="conversations" className="flex-1 m-0 mt-2">
+            <ConversationList
+              onSelectConversation={(id) => router.push(`/chat?conversationId=${id}`)}
+            />
+          </TabsContent>
+          
+          <TabsContent value="search" className="flex-1 m-0 mt-2">
+            <UserSearch
+              onSelectUser={(user: User) => {
+                router.push(`/chat?user=${user.id}&username=${user.username}`);
+              }}
+            />
+          </TabsContent>
+        </Tabs>
 
         <Separator />
 

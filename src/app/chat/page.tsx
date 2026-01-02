@@ -1,43 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { ChatInterface } from '@/components/chat-interface';
 import { motion } from 'framer-motion';
-import { Send, Smile } from 'lucide-react';
-
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
+import { Send } from 'lucide-react';
 
 export default function ChatPage() {
-  const [message, setMessage] = useState('');
+  const searchParams = useSearchParams();
+  const recipientId = searchParams.get('user');
+  const username = searchParams.get('username');
 
-  function handleSendMessage() {
-    if (!message.trim()) return;
-    // TODO: Implement message sending
-    console.log('Sending message:', message);
-    setMessage('');
-  }
-
-  function handleKeyPress(e: React.KeyboardEvent) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  }
-
-  return (
-    <div className="flex h-full flex-col">
-      {/* Chat Header */}
-      <div className="flex h-16 items-center gap-2 border-b px-4">
-        <div className="flex-1">
-          <h2 className="text-sm font-semibold">Select a conversation</h2>
-          <p className="text-xs text-muted-foreground">Choose a chat from the sidebar</p>
+  if (!recipientId || !username) {
+    return (
+      <div className="flex h-full flex-col">
+        <div className="flex h-16 items-center gap-2 border-b px-4">
+          <div className="flex-1">
+            <h2 className="text-sm font-semibold">Select a conversation</h2>
+            <p className="text-xs text-muted-foreground">Choose a chat from the sidebar</p>
+          </div>
         </div>
-      </div>
 
-      {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="flex h-full items-center justify-center">
+        <div className="flex-1 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -48,31 +31,13 @@ export default function ChatPage() {
             </div>
             <h3 className="mb-2 text-lg font-semibold">Start Messaging</h3>
             <p className="text-sm text-muted-foreground">
-              Select a conversation from the sidebar or start a new one
+              Search for users or select a conversation to start chatting
             </p>
           </motion.div>
         </div>
-      </ScrollArea>
-
-      {/* Message Input */}
-      <div className="border-t p-4">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" disabled>
-            <Smile className="h-5 w-5" />
-          </Button>
-          <Input
-            placeholder="Type a message..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyPress}
-            disabled
-            className="flex-1"
-          />
-          <Button onClick={handleSendMessage} disabled={!message.trim()}>
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return <ChatInterface recipientId={parseInt(recipientId)} recipientUsername={username} />;
 }
