@@ -135,18 +135,12 @@ async function proxyRequest(
     // Forward Set-Cookie headers to browser
     // Rewrite domain to ensure cookies work with frontend origin
     setCookieHeaders.forEach((cookie) => {
-      // Remove domain attribute if present (let browser use current origin)
-      // Remove any backend-specific domain
-      let rewrittenCookie = cookie
-        .replace(/;\s*Domain=[^;]+/gi, '')
-        .replace(/;\s*domain=[^;]+/gi, '');
+      // Remove domain attribute to let browser use current origin (om.wexun.tech)
+      // This ensures cookies are sent back to the same domain
+      let rewrittenCookie = cookie.replace(/;\s*[Dd]omain=[^;]+/g, '');
       
-      // Ensure Path is set to / if not present
-      if (!/Path=/i.test(rewrittenCookie)) {
-        rewrittenCookie += '; Path=/';
-      }
-      
-      console.log(`[Proxy] Rewritten cookie: ${rewrittenCookie.substring(0, 100)}...`);
+      console.log(`[Proxy] Original cookie: ${cookie.substring(0, 150)}`);
+      console.log(`[Proxy] Rewritten cookie: ${rewrittenCookie.substring(0, 150)}`);
       nextResponse.headers.append('Set-Cookie', rewrittenCookie);
     });
 
