@@ -52,9 +52,12 @@ async function proxyRequest(
     .map((cookie) => `${cookie.name}=${cookie.value}`)
     .join('; ');
 
+  console.log(`[Proxy] Cookies from request:`, cookieHeader || 'none');
+
   // Forward headers
   const headers: HeadersInit = {
     'Content-Type': request.headers.get('content-type') || 'application/json',
+    'Origin': 'https://om.wexun.tech',
   };
 
   // Add cookies if present
@@ -66,7 +69,10 @@ async function proxyRequest(
   const csrfToken = cookieStore.get('om_csrf')?.value;
   if (csrfToken && method !== 'GET' && method !== 'HEAD') {
     headers['X-OM-CSRF'] = csrfToken;
+    console.log(`[Proxy] Adding CSRF token: ${csrfToken.substring(0, 10)}...`);
   }
+
+  console.log(`[Proxy] Request headers:`, JSON.stringify(headers, null, 2));
 
   // Get request body for POST/PUT
   let body: string | undefined;
@@ -112,6 +118,12 @@ async function proxyRequest(
 
     // Create response with backend data
     const data = await response.text();
+    
+    // Log response body if error
+    if (response.status >= 400) {
+      console.log(`[Proxy] Error response body:`, data.substring(0, 200));
+    }
+    
     const nextResponse = new NextResponse(data, {
       status: response.status,
       statusText: response.statusText,
