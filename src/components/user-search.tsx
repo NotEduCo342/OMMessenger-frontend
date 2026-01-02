@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, User as UserIcon, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { searchUsers, getUserByUsername } from '@/api/user';
@@ -20,12 +20,12 @@ export function UserSearch({ onSelectUser }: UserSearchProps) {
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
   // Debounce search query
-  useState(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
     }, 300);
     return () => clearTimeout(timer);
-  });
+  }, [searchQuery]);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['users', 'search', debouncedQuery],
