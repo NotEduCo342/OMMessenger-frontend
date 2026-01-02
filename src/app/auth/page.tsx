@@ -111,21 +111,27 @@ export default function AuthPage() {
   }, [debouncedUsername, registerForm]);
 
   async function onLogin(data: LoginInput) {
+    console.log('[AuthPage] Login attempt for:', data.email);
     setIsLoading(true);
     try {
       const response = await loginUser(data);
+      console.log('[AuthPage] Login successful:', response.user);
 		setAuth(response.user);
+      console.log('[AuthPage] Auth state set, waiting before redirect...');
       toast.success('Welcome back!');
       // Small delay to ensure state updates propagate
       await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('[AuthPage] Redirecting to /chat');
       router.replace('/chat');
     } catch (error) {
+      console.error('[AuthPage] Login failed:', error);
       toast.error(error instanceof Error ? error.message : 'Login failed');
       setIsLoading(false);
     }
   }
 
   async function onRegister(data: RegisterInput) {
+    console.log('[AuthPage] Register attempt for:', data.username);
     // Final check before submitting
     if (usernameStatus === 'taken') {
       toast.error('Please choose a different username');
@@ -135,12 +141,16 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       const response = await registerUser(data);
+      console.log('[AuthPage] Registration successful:', response.user);
 		setAuth(response.user);
+      console.log('[AuthPage] Auth state set, waiting before redirect...');
       toast.success('Account created successfully!');
       // Small delay to ensure state updates propagate
       await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('[AuthPage] Redirecting to /chat');
       router.replace('/chat');
     } catch (error) {
+      console.error('[AuthPage] Registration failed:', error);
       toast.error(error instanceof Error ? error.message : 'Registration failed');
       setIsLoading(false);
     }

@@ -27,23 +27,30 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   const { sidebarOpen, toggleSidebar } = useUIStore();
   const { theme, setTheme } = useTheme();
 	const [hydratingSession, setHydratingSession] = useState(true);
+  const [authError, setAuthError] = useState(false);
 
   useEffect(() => {
+    console.log('[ChatLayout] Hydration started', { isAuthenticated, user: user?.username });
     let cancelled = false;
     const hydrate = async () => {
       try {
-        // Always validate with server, even if localStorage says authenticated
+        console.log('[ChatLayout] Calling getCurrentUser...');
         const currentUser = await getCurrentUser();
+        console.log('[ChatLayout] Got user from server:', currentUser.username);
         if (!cancelled) {
           setAuth(currentUser);
           setHydratingSession(false);
+          console.log('[ChatLayout] Auth set, hydration complete');
         }
       } catch (error) {
+        console.error('[ChatLayout] Hydration failed:', error);
         // Clear stale auth state on any error (401, network, etc.)
         if (!cancelled) {
           clearAuth();
+          setAuthError(true);
           setHydratingSession(false);
-          router.replace('/auth');
+          console.log('[ChatLayout] Auth cleared, redirecting to /auth');
+          setTimeout(() => router.replace('/auth'), 100);
         }
       }
     };
@@ -65,6 +72,14 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     }
   }
 
+  console.log('[ChatLayout] Render state:', { 
+    hydratingSession, 
+    isAuthenticated, 
+    hasUser: !!user,
+    username: user?.username,
+    authError
+  });
+
   // Show loading state during hydration
   if (hydratingSession) {
     return (
@@ -77,10 +92,19 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     );
   }
 
-  // Redirect handled by useEffect, show nothing during redirect
-  if (!isAuthenticated || !user) {
-    return null;
+  // Show error state if auth failed
+  if (authError || !isAuthenticated || !user) {
+    console.log('[ChatLayout] Auth check failed, showing redirect message');
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-sm text-muted-foreground">Redirecting to login...</p>
+        </div>
+      </div>
+    );
   }
+
+  console.log('[ChatLayout] Rendering chat interface for:', user.username);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background relative">

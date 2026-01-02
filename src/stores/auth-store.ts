@@ -26,17 +26,22 @@ export const useAuthStore = create<AuthState>()(
         user: null,
         isAuthenticated: false,
 
-        setAuth: (user) =>
+        setAuth: (user) => {
+          console.log('[AuthStore] setAuth called with user:', user.username);
           set({
             user,
             isAuthenticated: true,
-          }),
+          });
+          console.log('[AuthStore] State updated, isAuthenticated: true');
+        },
 
         clearAuth: () => {
+          console.log('[AuthStore] clearAuth called');
           set({
             user: null,
             isAuthenticated: false,
           });
+          console.log('[AuthStore] State cleared, isAuthenticated: false');
         },
 
         updateUser: (userData) =>
