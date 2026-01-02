@@ -135,11 +135,20 @@ async function proxyRequest(
     });
 
     // Forward Set-Cookie headers to browser
-    // Rewrite domain to ensure cookies work with frontend origin
     setCookieHeaders.forEach((cookie) => {
-      // Remove domain attribute to let browser use current origin (om.wexun.tech)
-      // This ensures cookies are sent back to the same domain
-      const rewrittenCookie = cookie.replace(/;\s*[Dd]omain=[^;]+/g, '');
+      // Only strip Domain if it's incompatible with the current frontend host.
+      // This keeps support for parent-domain cookies (e.g. Domain=wexun.tech),
+      // which are needed so cookies are also sent to the WebSocket host
+      // (e.g. wss://api-om.wexun.tech/ws).
+      const host = request.nextUrl.hostname.toLowerCase();
+      const domainMatch = /;\s*domain=([^;]+)/i.exec(cookie);
+      const cookieDomain = domainMatch?.[1]?.trim().toLowerCase().replace(/^\./, '');
+
+      const isDomainCompatible = (d: string, h: string) => h === d || h.endsWith(`.${d}`);
+
+      const rewrittenCookie = cookieDomain && !isDomainCompatible(cookieDomain, host)
+        ? cookie.replace(/;\s*[Dd]omain=[^;]+/g, '')
+        : cookie;
       
       console.log(`[Proxy] Original cookie: ${cookie.substring(0, 150)}`);
       console.log(`[Proxy] Rewritten cookie: ${rewrittenCookie.substring(0, 150)}`);
