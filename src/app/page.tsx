@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,13 @@ import { useAuthStore } from '@/stores/auth-store';
 export default function Home() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
+
+  // Redirect authenticated users to chat
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/chat');
+    }
+  }, [isAuthenticated, router]);
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       {/* Header */}

@@ -77,13 +77,10 @@ export async function fetchWithAuth<T>(
 
   // Attempt one refresh on 401
   if (response.status === 401 && url !== API_ENDPOINTS.REFRESH) {
-    const csrfToken = getCookieValue('om_csrf');
     const refreshRes = await fetch(API_ENDPOINTS.REFRESH, {
       method: 'POST',
       credentials: 'include',
-			headers: {
-				...(csrfToken ? { 'X-OM-CSRF': csrfToken } : {}),
-			},
+      // No CSRF token needed - refresh is protected by HttpOnly cookie
     });
 
     if (refreshRes.ok) {

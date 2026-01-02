@@ -39,9 +39,16 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export default function AuthPage() {
   const router = useRouter();
-  const { setAuth } = useAuthStore();
+  const { setAuth, isAuthenticated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/chat');
+    }
+  }, [isAuthenticated, router]);
 
   const loginForm = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -109,7 +116,7 @@ export default function AuthPage() {
       const response = await loginUser(data);
 		setAuth(response.user);
       toast.success('Welcome back!');
-      router.push('/chat');
+      router.replace('/chat');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Login failed');
     } finally {
@@ -129,7 +136,7 @@ export default function AuthPage() {
       const response = await registerUser(data);
 		setAuth(response.user);
       toast.success('Account created successfully!');
-      router.push('/chat');
+      router.replace('/chat');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Registration failed');
     } finally {

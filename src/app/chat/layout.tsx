@@ -32,16 +32,16 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     let cancelled = false;
     const hydrate = async () => {
       try {
-        if (!isAuthenticated) {
-          const currentUser = await getCurrentUser();
-          if (!cancelled) {
-            setAuth(currentUser);
-          }
+        // Always validate with server, even if localStorage says authenticated
+        const currentUser = await getCurrentUser();
+        if (!cancelled) {
+          setAuth(currentUser);
         }
-      } catch {
+      } catch (error) {
+        // Clear stale auth state on any error (401, network, etc.)
         if (!cancelled) {
           clearAuth();
-          router.push('/auth');
+          router.replace('/auth');
         }
       } finally {
         if (!cancelled) {
@@ -54,7 +54,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     return () => {
       cancelled = true;
     };
-  }, [clearAuth, isAuthenticated, router, setAuth]);
+  }, [clearAuth, router, setAuth]);
 
   async function handleLogout() {
     try {
@@ -63,7 +63,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
       // ignore
     } finally {
       clearAuth();
-      router.push('/');
+      router.replace('/auth');
     }
   }
 
