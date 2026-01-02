@@ -30,8 +30,17 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   const [authError, setAuthError] = useState(false);
 
   useEffect(() => {
+    // Read debug info from localStorage
+    const cookiesAfterLogin = localStorage.getItem('debug_cookies_after_login');
+    const loginTime = localStorage.getItem('debug_login_timestamp');
+    
+    console.log('[ChatLayout] ===== DEBUG INFO =====');
+    console.log('[ChatLayout] Cookies after login:', cookiesAfterLogin);
+    console.log('[ChatLayout] Login timestamp:', loginTime);
+    console.log('[ChatLayout] Current cookies:', document.cookie);
     console.log('[ChatLayout] Hydration started', { isAuthenticated, user: user?.username });
-    console.log('[ChatLayout] Cookies:', document.cookie);
+    console.log('[ChatLayout] ===== END DEBUG =====');
+    
     let cancelled = false;
     const hydrate = async () => {
       try {
@@ -42,9 +51,13 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
           setAuth(currentUser);
           setHydratingSession(false);
           console.log('[ChatLayout] Auth set, hydration complete');
+          // Clear debug logs on success
+          localStorage.removeItem('debug_cookies_after_login');
+          localStorage.removeItem('debug_login_timestamp');
         }
       } catch (error) {
         console.error('[ChatLayout] Hydration failed:', error);
+        console.error('[ChatLayout] This means cookies are NOT being sent to the API');
         // Clear stale auth state on any error (401, network, etc.)
         if (!cancelled) {
           clearAuth();

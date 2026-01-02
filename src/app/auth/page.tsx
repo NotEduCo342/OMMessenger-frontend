@@ -43,10 +43,17 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
 
-  // Don't auto-redirect on mount - only redirect after successful login/register
-  // This prevents redirect loops
+  // Redirect if already authenticated (but give time to see logs)
   useEffect(() => {
     console.log('[AuthPage] Mount - isAuthenticated:', isAuthenticated);
+    if (isAuthenticated) {
+      console.log('[AuthPage] Authenticated, will redirect to /chat in 1 second');
+      const timer = setTimeout(() => {
+        console.log('[AuthPage] Executing redirect to /chat');
+        window.location.href = '/chat';
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
   }, [isAuthenticated]);
 
   const loginForm = useForm<LoginInput>({
@@ -115,12 +122,18 @@ export default function AuthPage() {
     try {
       const response = await loginUser(data);
       console.log('[AuthPage] Login successful:', response.user);
-      console.log('[AuthPage] Cookies after login:', document.cookie);
+      
+      // Save cookies to localStorage for debugging (survives redirect)
+      const cookiesAfterLogin = document.cookie;
+      console.log('[AuthPage] Cookies after login:', cookiesAfterLogin);
+      localStorage.setItem('debug_cookies_after_login', cookiesAfterLogin);
+      localStorage.setItem('debug_login_timestamp', new Date().toISOString());
+      
 		setAuth(response.user);
       console.log('[AuthPage] Auth state set, waiting before redirect...');
       toast.success('Welcome back!');
       // Small delay to ensure state updates propagate
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 500));
       console.log('[AuthPage] Redirecting to /chat via window.location');
       window.location.href = '/chat';
     } catch (error) {
